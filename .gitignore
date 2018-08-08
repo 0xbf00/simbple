@@ -1,0 +1,6 @@
+.DS_Store
+**/CMakeCache.txt
+**/CMakeFiles/*
+**/Makefile
+**/*.o
+**/*.dylib

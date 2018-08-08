@@ -1,0 +1,29 @@
+IDA IDC scripts to extract required information and to facilitate updating the
+SBPL interpreter to future sandbox versions.
+
+Two scripts are provided:
+    - extract_filter.idc generates two output files, one containing the named
+    definitions, and one containing the actual filter definitions. These files
+    should be placed in sbpl/sb/filters/ and should replace the existing files
+    there. Note that the auto-generated versions do not generate support code
+    for derived filters, which at this time is part of the filters/definition.c
+    codebase. Simply adding the static rest of the old definition to the newly
+    generated file should suffice.
+    - extract_ops.idc generates a single output file containing the definitions
+    of sandbox operation-related data structures. The generated file should
+    simply replace the provided sb/operations/definition.c file.
+
+Note that modifiers are thus far not handled automatically, and neither are meta
+filters such as "require-all". In the current implementation, these constructs
+are implemented in a less modular way as compared to operations and filters, and
+are therefore less easily automatically generated. Consider however, that there
+are considerably fewer such constructs in the SBPL language, and it should
+therefore be less time consuming to fix any issues arising from new constructs.
+
+Both scripts use the "old" IDA IDC syntax and function interface. They have been
+tested with IDA Pro 6.8 and libsandbox.1.dylib from macOS 10.12.6 (SHA1:
+2e06bb92769e53d5c4467a9b51be9b9640b97bdd). Both scripts expect certain symbols
+to be available and make assumptions about the makeup of internal data
+structures that are potentially subject to change. In case the output of the
+scripts appears to be wrong, further work is necessary. Pull requests are
+encouraged.
