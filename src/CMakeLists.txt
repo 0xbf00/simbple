@@ -8,9 +8,12 @@ set(CMAKE_BINARY_DIR ${CMAKE_BINARY_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
-set(PROJECT_INCLUDE_DIR ${PROJECT_SOURCE_DIR})
+set(PROJECT_INCLUDE_DIR
+        ${PROJECT_SOURCE_DIR}
+        ${PROJECT_SOURCE_DIR}/dependencies)
 
-add_subdirectory("scheme_interpreter")
+add_subdirectory("dependencies/scheme_interpreter")
+add_subdirectory("dependencies/sbpldump")
 
 include_directories("${PROJECT_INCLUDE_DIR}")
 
@@ -116,4 +119,4 @@ add_executable(
         ${CMAKE_CURRENT_BINARY_DIR}/scripts.c
 )
 
-target_link_libraries(simbple tinyscheme)
+target_link_libraries(simbple tinyscheme sbpldump)
