@@ -24,8 +24,6 @@ $ cmake ../src
 $ make
 ```
 
-At this time, the resulting binary cannot be moved away from its compilation directory, as certain relative filepaths are hardcoded in the program.
-
 ## Usage
 
 As input, the `simbple` tool takes the `Container.plist` file for the target app. This is done so that the same parameters used during the initial sandbox compilation process can be used and the resulting profiles can be verified to be correct. In case an application does not have the required file, simply launch the app once to generate it. If it's still not there, ensure the application is sandboxed, for example by consulting `Activity Monitor.app`.
