@@ -15,6 +15,7 @@
 #include <assert.h>
 #include <misc/misc.h>
 #include <scheme_interpreter/scheme-private.h>
+#include <scm/scripts.h>
 
 static int error_occurred = false;
 
@@ -78,8 +79,7 @@ const char *sb_evaluate(const char *profile, const char *container_metadata,
 
   scheme *sc = scheme_init_new();
 
-  scheme_support.load_file(
-      sc, program_relative_path("/../../src/scm/apple-init.scm"));
+  scheme_support.load_string(sc, apple_init_scm);
 
   // Register error handler
   scheme_define(sc, sc->global_env, sc->ERROR_HOOK,
@@ -106,12 +106,9 @@ const char *sb_evaluate(const char *profile, const char *container_metadata,
   operations.register_handlers(sc, operations_for_platform(platform));
   actions.register_handlers(sc);
 
-  scheme_support.load_file(sc,
-                           program_relative_path("/../../src/scm/sbpl.scm"));
-  scheme_support.load_file(
-      sc, program_relative_path("/../../src/scm/sbpl_prelude.scm"));
-  scheme_support.load_file(sc,
-                           program_relative_path("/../../src/scm/sbpl_v1.scm"));
+  scheme_support.load_string(sc, sbpl_scm);
+  scheme_support.load_string(sc, sbpl_prelude_scm);
+  scheme_support.load_string(sc, sbpl_v1_scm);
 
   scheme_support.load_file(sc, profile);
 

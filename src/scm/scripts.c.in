@@ -1,0 +1,24 @@
+//
+// Created by Jakob Rieck on 07.09.18.
+//
+
+/**
+ * Hacky file to include the scheme scripts in this directory directly into the
+ * simbple binary. By using this technique, the program does not need to load
+ * these files from disk and can be run from anywhere.
+ */
+char apple_init_scm[] = {
+#include "@CMAKE_CURRENT_BINARY_DIR@/apple_init_scm.xxd"
+};
+
+char sbpl_scm[] = {
+#include "@CMAKE_CURRENT_BINARY_DIR@/sbpl_scm.xxd"
+};
+
+char sbpl_prelude_scm[] = {
+#include "@CMAKE_CURRENT_BINARY_DIR@/sbpl_prelude_scm.xxd"
+};
+
+char sbpl_v1_scm[] = {
+#include "@CMAKE_CURRENT_BINARY_DIR@/sbpl_v1_scm.xxd"
+};

@@ -21,6 +21,29 @@ set(CMAKE_LD_FLAGS "${CMAKE_LD_FLAGS}")
 
 set(CMAKE_CXX_LINK_FLAGS "-framework CoreFoundation -framework Foundation -largp -lsandbox")
 
+# Generate C files containing SCM script definitions
+add_custom_command(
+        OUTPUT apple_init_scm.xxd sbpl_scm.xxd sbpl_prelude_scm.xxd sbpl_v1_scm.xxd
+
+        # Convert plaintext files to C data definition.
+        COMMAND xxd -i < ${CMAKE_SOURCE_DIR}/scm/apple-init.scm > ${CMAKE_CURRENT_BINARY_DIR}/apple_init_scm.xxd
+        # Add required 0 byte to mark the end.
+        COMMAND echo ", 0" >> ${CMAKE_CURRENT_BINARY_DIR}/apple_init_scm.xxd
+
+        COMMAND xxd -i < ${CMAKE_SOURCE_DIR}/scm/sbpl.scm > ${CMAKE_CURRENT_BINARY_DIR}/sbpl_scm.xxd
+        COMMAND echo ", 0" >> ${CMAKE_CURRENT_BINARY_DIR}/sbpl_scm.xxd
+
+        COMMAND xxd -i < ${CMAKE_SOURCE_DIR}/scm/sbpl_prelude.scm > ${CMAKE_CURRENT_BINARY_DIR}/sbpl_prelude_scm.xxd
+        COMMAND echo ", 0" >> ${CMAKE_CURRENT_BINARY_DIR}/sbpl_prelude_scm.xxd
+
+        COMMAND xxd -i < ${CMAKE_SOURCE_DIR}/scm/sbpl_v1.scm > ${CMAKE_CURRENT_BINARY_DIR}/sbpl_v1_scm.xxd
+        COMMAND echo ", 0" >> ${CMAKE_CURRENT_BINARY_DIR}/sbpl_v1_scm.xxd
+
+        DEPENDS scm/apple-init.scm scm/sbpl.scm scm/sbpl_prelude.scm scm/sbpl_v1.scm
+)
+
+configure_file(scm/scripts.c.in scripts.c)
+
 add_executable(
         simbple
         interpreter.c
@@ -85,6 +108,12 @@ add_executable(
         platform_data/high_sierra/filters.h
         platform_data/platforms.h
         platform_data/platforms.c
-        )
+        scm/scripts.h
+        ${CMAKE_CURRENT_BINARY_DIR}/apple_init_scm.xxd
+        ${CMAKE_CURRENT_BINARY_DIR}/sbpl_scm.xxd
+        ${CMAKE_CURRENT_BINARY_DIR}/sbpl_prelude_scm.xxd
+        ${CMAKE_CURRENT_BINARY_DIR}/sbpl_v1_scm.xxd
+        ${CMAKE_CURRENT_BINARY_DIR}/scripts.c
+)
 
 target_link_libraries(simbple tinyscheme)
