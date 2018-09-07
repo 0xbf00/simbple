@@ -33,6 +33,8 @@ typedef struct {
   bool (*redirect_symbol)(scheme *, const char *, const char *);
 
   void (*load_file)(scheme *, const char *);
+
+  void (*load_string)(scheme *, const char *);
 } scheme_support_interface_t;
 
 /**
@@ -126,6 +128,14 @@ bool bool_value(scheme *sc, pointer arg);
  * @param filename The file to load.
  */
 void load_file(scheme *sc, const char *filename);
+
+/**
+ * Load a scheme command (or multiple commands)
+ * using the Scheme interpreter.
+ * @param sc The current scheme context.
+ * @param scm The scheme commands to execute / load.
+ */
+void load_string(scheme *sc, const char *scm);
 
 void line_identifier(scheme *sc);
 

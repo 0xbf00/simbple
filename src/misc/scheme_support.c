@@ -101,6 +101,10 @@ void load_file(scheme *sc, const char *filename) {
   fclose(f);
 }
 
+void load_string(scheme *sc, const char *scm) {
+  scheme_load_string(sc, scm);
+}
+
 const scheme_support_interface_t scheme_support = {
     .register_function = register_function,
     .register_functions = register_functions,
@@ -108,4 +112,5 @@ const scheme_support_interface_t scheme_support = {
     .evaluate_string = string_evaluate,
     .redirect_function = redirect_function,
     .redirect_symbol = redirect_symbol,
-    .load_file = load_file};
+    .load_file = load_file,
+    .load_string = load_string};
