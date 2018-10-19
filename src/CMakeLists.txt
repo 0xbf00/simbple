@@ -10,12 +10,17 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
 set(PROJECT_INCLUDE_DIR
         ${PROJECT_SOURCE_DIR}
-        ${PROJECT_SOURCE_DIR}/dependencies)
+        ${PROJECT_SOURCE_DIR}/dependencies
+        "/usr/local/include") # nlohmann_json placed here by homebrew. Mojave does not automatically search this directory.
+
+set(PROJECT_LINK_DIR
+        "/usr/local/lib") # largp is placed here by homebrew. Mojave does not automatically search this directory.
 
 add_subdirectory("dependencies/scheme_interpreter")
 add_subdirectory("dependencies/sbpldump")
 
 include_directories("${PROJECT_INCLUDE_DIR}")
+link_directories("${PROJECT_LINK_DIR}")
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
