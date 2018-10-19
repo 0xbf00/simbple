@@ -5,7 +5,7 @@ set (PROJECT_INCLUDE_DIR
 		${PROJECT_SOURCE_DIR}
 		"/usr/local/include") # Path where homebrew installs nlohmann_json to.
 
-include_directories("${PROJECT_INCLUDE_DIR})
+include_directories("${PROJECT_INCLUDE_DIR}")
 
 set (PROJECT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
