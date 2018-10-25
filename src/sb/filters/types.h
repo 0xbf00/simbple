@@ -54,17 +54,48 @@ enum filter_argument_type {
 #pragma pack(1)
 typedef struct {
   const char *name;
-  // Not used by this interpreter so far
   const char *category;
-  enum filter_argument_type argument_type;
+  /**
+   * Type of arguments accepted by the filter.
+   * the type stores values of the enum filter_argument_type
+   * type. Whether a certain filter accepts a certain argument
+   * type is decided by the _filter_accepts_type functions in
+   * platform_data/example/filters.h
+   *
+   * Changes:
+   * - Mojave: size changed to 8-bits from 32-bits.
+   */
+  uint8_t argument_type;
+  /**
+   * Shortcut to compute whether two filters are mutually exclusive.
+   * Require-all metafilters where >= two containing filters are mutually
+   * exclusive are removed during compilation
+   *
+   * Changes:
+   * - Mojave: introduced
+   */
+  uint8_t is_contrary;
+  /**
+   * Initial cost factor of the filter. The actual usage of this field
+   * is not clear and has not been reverse engineered. It is possible
+   * that filters are sorted in increasing cost factor order as to minimise
+   * the default access time.
+   *
+   * Changes:
+   * - Mojave: introduced
+   */
+  uint16_t cost_factor;
 
-  // Another filter that needs to preceed this one
-  // ATM only required by various %entitlements-{string|boolean} filters.
-  // Default value: FILTER_NO_REQUISITE (0)
+  /**
+   * Index of another filter, if this filter has a prerequisite, otherwise 0
+   * (FILTER_NO_REQUISITE)
+   */
   uint32_t prerequisite;
 
-  // Pointer to array of named_argument structures
-  // The list ends with an empty argument where name and value are 0.
+  /**
+   * Pointer to array of `named_argument` structures. The list ends with an
+   * empty argument structure where name and value are 0.
+   */
   const named_argument *named_arguments;
 } filter_info_t;
 #pragma pack()
