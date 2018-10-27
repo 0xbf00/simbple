@@ -114,6 +114,10 @@ add_executable(
         platform_data/high_sierra/operations.h
         platform_data/high_sierra/filters.c
         platform_data/high_sierra/filters.h
+        platform_data/mojave/operations.c
+        platform_data/mojave/operations.h
+        platform_data/mojave/filters.c
+        platform_data/mojave/filters.h
         platform_data/platforms.h
         platform_data/platforms.c
         scm/scripts.h
