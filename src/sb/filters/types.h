@@ -109,6 +109,7 @@ enum argument_type {
   // We make sure NOT to use the 0 value, because that allows us
   // to quickly check whether we forgot to specify the argument's type!
   PRIMITIVE = 1,
+  BOOLEAN,
   STRING
 };
 

@@ -82,7 +82,7 @@ pointer handle_generic_filter(scheme *sc, pointer args) {
       result = filter_add_argument(
           result, (sbpl_filter_argument_t){.alias = alias ? alias->name : NULL,
                                            .argument.as_int = arg_val,
-                                           .type = PRIMITIVE});
+                                           .type = BOOLEAN});
     } else if (filter_accepts_type(filter_info, SB_VALUE_TYPE_NETWORK)) {
       // Normally, the order of the arguments is important. We ignore this here,
       // because we assume the profiles we get are well-formed.

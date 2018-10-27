@@ -97,10 +97,18 @@ static json dump_json_filter(pointer filter) {
         argument_details["alias"] = alias;
       }
 
-      if (arg->type == STRING) {
-        argument_details["value"] = arg->argument.as_str;
-      } else {
-        argument_details["value"] = arg->argument.as_int;
+      switch (arg->type) {
+        case STRING:
+          argument_details["type"] = "string";
+          argument_details["value"] = arg->argument.as_str;
+          break;
+        case BOOLEAN:
+          argument_details["type"] = "boolean";
+          argument_details["value"] = arg->argument.as_int;
+          break;
+        case PRIMITIVE:
+          argument_details["type"] = "primitive";
+          argument_details["value"] = arg->argument.as_int;
       }
 
       arguments.push_back(argument_details);

@@ -60,12 +60,14 @@ static std::string dump_scheme_filter(const json &filter_desc,
         const std::string alias = argument["alias"];
         filter_out << alias;
       } else {
-        if (argument["value"].is_string()) {
+        if (argument["type"] == "string") {
           filter_out << argument["value"];
         } else {
-          // TODO: Handle boolean values
           const uint64_t int_value = argument["value"];
-          filter_out << int_value;
+          if (argument["type"] == "boolean")
+            filter_out << (int_value ? "#t" : "#f");
+          else
+            filter_out << int_value;
         }
       }
       if (it == --arguments.cend()) {
