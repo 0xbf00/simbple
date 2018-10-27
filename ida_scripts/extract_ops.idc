@@ -104,11 +104,6 @@ static dump_op_names(out_file)
 
     // Closing definition
     fprintf(out_file, "};\n");
-
-    // Convenience function definition
-    fprintf(out_file, "size_t operations_get_count()\n");
-    fprintf(out_file, "{\n    return sizeof(operation_names) / sizeof(*operation_names);\n");
-    fprintf(out_file, "}\n");
 }
 
 /*
@@ -230,7 +225,7 @@ static main()
     Message("Found %d symbols\n", cnt_ops);
 
     // Starting include line
-    fprintf(out_file, "#include \"definition.h\"\n");
+    fprintf(out_file, "#include \"operations.h\"\n");
 
     // First off, dump the operation names
     dump_op_names(out_file);

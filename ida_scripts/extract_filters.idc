@@ -118,7 +118,7 @@ static get_filter_accepted_type(idx)
 {
     auto filter_base = get_filter_base(idx);
 
-    auto raw_value = Word(filter_base + 0x10);
+    auto raw_value = Byte(filter_base + 0x10);
     if (raw_value == 0x1) {
         return "SB_VALUE_TYPE_BOOL";
     } else if (raw_value == 0x2) {
@@ -142,6 +142,33 @@ static get_filter_accepted_type(idx)
     } else {
         return "UNHANDLED_CASE";
     }
+}
+
+/*
+ * WIP name. Introduced in macOS Mojave.
+ * Shortcut to check whether two or more filters fundamentally
+ * contradict eachother. The only example thus far are the
+ * global-name and local-name filters...
+ */
+static get_filter_is_contrary(idx)
+{
+    auto filter_base = get_filter_base(idx);
+    auto is_contrary = Byte(filter_base + 0x11);
+
+    return (is_contrary ? "1" : "0");
+}
+
+/*
+ * WIP name. Introduced in macOS Mojave.
+ * The exact purpose of this field has not been
+ * reverse engineered thus far.
+ */
+static get_filter_cost_factor(idx)
+{
+    auto filter_base = get_filter_base(idx);
+    auto cost_estimate = Word(filter_base + 0x12);
+
+    return sprintf("%d", cost_estimate);
 }
 
 static get_filter_prerequisite(idx)
@@ -220,7 +247,7 @@ static dump_filter_info(filter_file, filter_idx)
 {
     // Check for special, first filter that is not useful
     if (get_filter_name(filter_idx) == "NULL") {
-        fprintf(filter_file, "    { .name = NULL, .category = NULL, .argument_type = 0, .prerequisite = 0, .named_arguments = NULL },\n");
+        fprintf(filter_file, "    { 0 },\n");
         return;
     }
     
@@ -228,6 +255,8 @@ static dump_filter_info(filter_file, filter_idx)
     fprintf(filter_file, "        .name = \"%s\",\n", get_filter_name(filter_idx));
     fprintf(filter_file, "        .category = \"%s\",\n", get_filter_category(filter_idx));
     fprintf(filter_file, "        .argument_type = %s,\n", get_filter_accepted_type(filter_idx));
+    fprintf(filter_file, "        .is_contrary = %s,\n", get_filter_is_contrary(filter_idx));
+    fprintf(filter_file, "        .cost_factor = %s,\n", get_filter_cost_factor(filter_idx));
     fprintf(filter_file, "        .prerequisite = %s,\n", get_filter_prerequisite(filter_idx));
 
     auto filter_arguments = get_filter_named_arguments(filter_idx);
