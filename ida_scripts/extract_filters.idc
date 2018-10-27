@@ -118,7 +118,7 @@ static get_filter_accepted_type(idx)
 {
     auto filter_base = get_filter_base(idx);
 
-    auto raw_value = Dword(filter_base + 0x10);
+    auto raw_value = Word(filter_base + 0x10);
     if (raw_value == 0x1) {
         return "SB_VALUE_TYPE_BOOL";
     } else if (raw_value == 0x2) {
@@ -140,8 +140,7 @@ static get_filter_accepted_type(idx)
     } else if (raw_value == 0xa) {
         return "SB_VALUE_TYPE_NETWORK";
     } else {
-        // Error condition, handle properly
-        return "";
+        return "UNHANDLED_CASE";
     }
 }
 
@@ -221,23 +220,21 @@ static dump_filter_info(filter_file, filter_idx)
 {
     // Check for special, first filter that is not useful
     if (get_filter_name(filter_idx) == "NULL") {
-        fprintf(filter_file, "    { NULL, NULL, 0, 0, NULL },\n");
+        fprintf(filter_file, "    { .name = NULL, .category = NULL, .argument_type = 0, .prerequisite = 0, .named_arguments = NULL },\n");
         return;
     }
     
     fprintf(filter_file, "    {\n");
-    fprintf(filter_file, "        \"%s\",\n", get_filter_name(filter_idx));
-    fprintf(filter_file, "        \"%s\",\n", get_filter_category(filter_idx));
-    fprintf(filter_file, "        %s,\n", get_filter_accepted_type(filter_idx));
-    fprintf(filter_file, "        %s,\n", get_filter_prerequisite(filter_idx));
+    fprintf(filter_file, "        .name = \"%s\",\n", get_filter_name(filter_idx));
+    fprintf(filter_file, "        .category = \"%s\",\n", get_filter_category(filter_idx));
+    fprintf(filter_file, "        .argument_type = %s,\n", get_filter_accepted_type(filter_idx));
+    fprintf(filter_file, "        .prerequisite = %s,\n", get_filter_prerequisite(filter_idx));
 
     auto filter_arguments = get_filter_named_arguments(filter_idx);
     if (filter_arguments) {
         // Re-generate name for the filter arguments.
         auto arg_name = make_c_identifier(get_filter_name(filter_idx)) + "_args";
-        fprintf(filter_file, "        %s,\n", arg_name);
-    } else {
-        fprintf(filter_file, "        NULL\n");
+        fprintf(filter_file, "        .named_arguments = %s,\n", arg_name);
     }
 
     fprintf(filter_file, "    },\n");
@@ -263,6 +260,9 @@ static main()
     }
 
     Message("Found %d filters\n", cnt_filters);
+
+    // Starting include line
+    fprintf(filter_file, "#include \"filters.h\"\n\n");
 
     // Write named arguments to file
     for (i = 0; i < cnt_filters; i = i + 1) {
