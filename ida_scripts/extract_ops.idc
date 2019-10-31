@@ -49,6 +49,13 @@ static get_op_count()
             break;
         }
 
+        // The _operation_names array does not contain NULL pointers.
+        // The macOS Catalina libsandbox has a trailing NULL pointer,
+        // likely due to compiler-added alignment.
+        if (Qword(op_name_base + offset) == 0x0) {
+            break;
+        }
+
         ops_count = ops_count + 1;
         offset = offset + 0x8;
     }
