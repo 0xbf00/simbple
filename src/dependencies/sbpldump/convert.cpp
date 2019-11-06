@@ -70,14 +70,13 @@ static std::string dump_scheme_filter(const json &filter_desc,
             filter_out << int_value;
         }
       }
-      if (it == --arguments.cend()) {
-        // Currently processing last filter argument. Special handling
-        filter_out << ")";
-      } else {
+      if (it != --arguments.cend()) {
         // Place each argument on its own line
         filter_out << std::endl << pad << "    ";
       }
     }
+
+    filter_out << ")";
 
     // Normal filter on first level (assuming 4 as default padding)
     if (padding == 4) {
