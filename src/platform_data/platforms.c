@@ -61,16 +61,19 @@ const char *list_target_platforms() {
 }
 
 enum target_platform platform_get_default() {
-  const char *version = macos_version();
+  enum target_platform platform = PLATFORM_UNKNOWN;
+
+  char *version = macos_version();
   if (strncmp("10.12", version, 5) == 0) {
-    return PLATFORM_SIERRA;
+    platform = PLATFORM_SIERRA;
   } else if (strncmp("10.13", version, 5) == 0) {
-    return PLATFORM_HIGH_SIERRA;
+    platform = PLATFORM_HIGH_SIERRA;
   } else if (strncmp("10.14", version, 5) == 0) {
-    return PLATFORM_MOJAVE;
-  } else {
-    return PLATFORM_UNKNOWN;
+    platform = PLATFORM_MOJAVE;
   }
+  free(version);
+
+  return platform;
 }
 
 enum target_platform platform_from_string(const char *platform_str) {
@@ -81,6 +84,16 @@ enum target_platform platform_from_string(const char *platform_str) {
   }
 
   return PLATFORM_UNKNOWN;
+}
+
+const char *version_prefix_for_platform(enum target_platform platform) {
+  for (size_t i = 0; i < n_supported_platforms; ++i) {
+    if (supported_platforms[i].identifier == platform) {
+      return supported_platforms[i].version_prefix;
+    }
+  }
+
+  return NULL;
 }
 
 op_data_provider operations_for_platform(enum target_platform platform) {

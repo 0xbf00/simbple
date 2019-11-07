@@ -1,7 +1,7 @@
 #include "os_support.h"
 #include <Foundation/Foundation.h>
 
-const char *macos_version()
+char *macos_version()
 {
 	NSOperatingSystemVersion version = [[NSProcessInfo processInfo] operatingSystemVersion];
 

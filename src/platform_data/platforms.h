@@ -18,6 +18,7 @@ const char *list_target_platforms();
 enum target_platform platform_from_string(const char *platform_str);
 enum target_platform platform_get_default();
 
+const char *version_prefix_for_platform(enum target_platform platform);
 op_data_provider operations_for_platform(enum target_platform platform);
 filter_data_provider filters_for_platform(enum target_platform platform);
 

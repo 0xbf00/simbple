@@ -6,6 +6,7 @@
 #include "regex.h"
 #include "scheme_support.h"
 #include "string.h"
+#include "os_support.h"
 
 #include <stdlib.h>
 
