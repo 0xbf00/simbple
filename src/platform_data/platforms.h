@@ -10,7 +10,8 @@ enum target_platform {
   PLATFORM_UNKNOWN,
   PLATFORM_SIERRA,
   PLATFORM_HIGH_SIERRA,
-  PLATFORM_MOJAVE
+  PLATFORM_MOJAVE,
+  PLATFORM_CATALINA
 };
 
 const char *list_target_platforms();

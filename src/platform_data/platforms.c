@@ -15,6 +15,9 @@
 #include "mojave/filters.h"
 #include "mojave/operations.h"
 
+#include "catalina/filters.h"
+#include "catalina/operations.h"
+
 #include <misc/os_support.h>
 
 struct platform_info {
@@ -26,7 +29,8 @@ struct platform_info {
 const struct platform_info supported_platforms[] = {
     {PLATFORM_SIERRA, "10.12", "sierra"},
     {PLATFORM_HIGH_SIERRA, "10.13", "high_sierra"},
-    {PLATFORM_MOJAVE, "10.14", "mojave"}};
+    {PLATFORM_MOJAVE, "10.14", "mojave"},
+    {PLATFORM_CATALINA, "10.15", "catalina"}};
 
 const size_t n_supported_platforms =
     sizeof(supported_platforms) / sizeof(*supported_platforms);
@@ -70,6 +74,8 @@ enum target_platform platform_get_default() {
     platform = PLATFORM_HIGH_SIERRA;
   } else if (strncmp("10.14", version, 5) == 0) {
     platform = PLATFORM_MOJAVE;
+  } else if (strncmp("10.15", version, 5) == 0) {
+    platform = PLATFORM_CATALINA;
   }
   free(version);
 
@@ -104,6 +110,8 @@ op_data_provider operations_for_platform(enum target_platform platform) {
     return high_sierra_ops;
   case PLATFORM_MOJAVE:
     return mojave_ops;
+  case PLATFORM_CATALINA:
+    return catalina_ops;
   default:
     assert(false && "Invalid platform specified.");
   }
@@ -117,6 +125,8 @@ filter_data_provider filters_for_platform(enum target_platform platform) {
     return high_sierra_filters;
   case PLATFORM_MOJAVE:
     return mojave_filters;
+  case PLATFORM_CATALINA:
+    return catalina_filters;
   default:
     assert(false && "Invalid platform specified.");
   }

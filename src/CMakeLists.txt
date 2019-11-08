@@ -118,6 +118,10 @@ add_executable(
         platform_data/mojave/operations.h
         platform_data/mojave/filters.c
         platform_data/mojave/filters.h
+        platform_data/catalina/operations.c
+        platform_data/catalina/operations.h
+        platform_data/catalina/filters.c
+        platform_data/catalina/filters.h
         platform_data/platforms.h
         platform_data/platforms.c
         scm/scripts.h

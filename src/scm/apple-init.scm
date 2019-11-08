@@ -228,6 +228,15 @@
           (cons (car l) (filter pred (cdr l)))
           (filter pred (cdr l)))))
 
+; Added in macOS Catalina
+(if (string>=? *platform-version* "10.15")
+  (define (flatten lst)
+    (foldr (lambda (x e)
+             (if (list? e)
+                 (append (flatten e) x)
+                 (cons e x))) () lst))
+  ())
+
 (define (partition pred lst)
   (letrec
     ((collect

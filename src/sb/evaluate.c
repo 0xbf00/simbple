@@ -79,6 +79,32 @@ const char *sb_evaluate(const char *profile, const char *container_metadata,
 
   scheme *sc = scheme_init_new();
 
+  /*
+   * macOS Catalina's embedded Scheme scripts changed slightly, breaking
+   * verification on older operation systems if the scripts are copied verbatim.
+   *
+   * To work around this, the changes are only loaded if the platform
+   * is set to Catalina. This is done by consulting the *platform-version*
+   * Scheme variable, which we set here to the appropriate value.
+   *
+   * Note: A future version of simbple might remove support for specifying
+   * different platforms and will only use data for the platform the tool
+   * is currently running on. The tools' verification functionality only works
+   * when the chosen platform is the platform the tool is executing on.
+   * This change will reduce a lot of complexity.
+   */
+  scheme_support.register_object(sc, "*platform-version*",
+    mk_string(sc, version_prefix_for_platform(platform)));
+
+  /*
+   * macOS Catalina sometimes encodes regex strings as #"regex". These values,
+   * which the scheme interpreter internally cannot handle, are not processed
+   * in any special way by the sandbox internals.
+   * To handle these values, we simply read an s-token when we encounter one
+   * of these unhandled values.
+   */
+  scheme_support.load_string(sc, "(define *sharp-hook* read)");
+
   scheme_support.load_string(sc, apple_init_scm);
 
   // Register error handler
