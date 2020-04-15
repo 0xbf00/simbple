@@ -13,8 +13,18 @@ set(PROJECT_INCLUDE_DIR
         ${PROJECT_SOURCE_DIR}/dependencies
         "/usr/local/include") # nlohmann_json placed here by homebrew. Mojave does not automatically search this directory.
 
-set(PROJECT_LINK_DIR
-        "/usr/local/lib") # largp is placed here by homebrew. Mojave does not automatically search this directory.
+find_library(ARGP_LIBRARY
+    NAMES
+      argp
+    PATHS
+      /usr/lib
+      /usr/local/lib
+      /opt/local/lib
+      /sw/lib
+  )
+
+# set(PROJECT_LINK_DIR
+#        "/usr/local/lib") # largp is placed here by homebrew. Mojave does not automatically search this directory.
 
 add_subdirectory("dependencies/scheme_interpreter")
 add_subdirectory("dependencies/sbpldump")
@@ -27,7 +37,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 
 set(CMAKE_LD_FLAGS "${CMAKE_LD_FLAGS}")
 
-set(CMAKE_CXX_LINK_FLAGS "-framework CoreFoundation -framework Foundation -largp -lsandbox")
+# set(CMAKE_CXX_LINK_FLAGS "-largp -lsandbox")
 
 # Generate C files containing SCM script definitions
 add_custom_command(
@@ -132,4 +142,4 @@ add_executable(
         ${CMAKE_CURRENT_BINARY_DIR}/scripts.c
 )
 
-target_link_libraries(simbple tinyscheme sbpldump)
+target_link_libraries(simbple tinyscheme sbpldump sandbox ${ARGP_LIBRARY} sandbox "-framework CoreFoundation" "-framework Foundation")
