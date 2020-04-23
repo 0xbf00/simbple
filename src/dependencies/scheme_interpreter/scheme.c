@@ -591,7 +591,7 @@ static int alloc_cellseg(scheme *sc, int n) {
   return n;
 }
 
-static INLINE pointer get_cell(scheme *sc, pointer a, pointer b) {
+static INLINE pointer get_cell_x(scheme *sc, pointer a, pointer b) {
   if (sc->free_cell != sc->NIL) {
     pointer x = sc->free_cell;
     sc->free_cell = cdr(x);
@@ -708,6 +708,50 @@ static pointer find_consecutive_cells(scheme *sc, int n) {
     pp = &cdr(*pp + cnt - 1);
   }
   return sc->NIL;
+}
+
+// Backported from Scheme 1.40
+/* To retain recent allocs before interpreter knows about them -
+   Tehom */
+
+static void push_recent_alloc(scheme *sc, pointer recent, pointer extra)
+{
+  pointer holder = get_cell_x(sc, recent, extra);
+  typeflag(holder) = T_PAIR | T_IMMUTABLE;
+  car(holder) = recent;
+  cdr(holder) = car(sc->sink);
+  car(sc->sink) = holder;
+}
+
+static pointer get_cell(scheme *sc, pointer a, pointer b)
+{
+  pointer cell   = get_cell_x(sc, a, b);
+  /* For right now, include "a" and "b" in "cell" so that gc doesn't
+     think they are garbage. */
+  /* Tentatively record it as a pair so gc understands it. */
+  typeflag(cell) = T_PAIR;
+  car(cell) = a;
+  cdr(cell) = b;
+  push_recent_alloc(sc, cell, sc->NIL);
+  return cell;
+}
+
+static pointer get_vector_object(scheme *sc, int len, pointer init)
+{
+  pointer cells = get_consecutive_cells(sc,len/2+len%2+1);
+  if(sc->no_memory) { return sc->sink; }
+  /* Record it as a vector so that gc understands it. */
+  typeflag(cells) = (T_VECTOR | T_ATOM);
+  ivalue_unchecked(cells)=len;
+  set_integer(cells);
+  fill_vector(cells,init);
+  push_recent_alloc(sc, cells, sc->NIL);
+  return cells;
+}
+
+static INLINE void ok_to_freely_gc(scheme *sc)
+{
+  car(sc->sink) = sc->NIL;
 }
 
 /* get new cons cell */
@@ -900,8 +944,8 @@ INTERFACE pointer mk_string(scheme *sc, const char *str) {
 INTERFACE pointer mk_counted_string(scheme *sc, const char *str, int len) {
   pointer x = get_cell(sc, sc->NIL, sc->NIL);
 
-  strvalue(x) = store_string(sc, len, str, 0);
   typeflag(x) = (T_STRING | T_ATOM);
+  strvalue(x) = store_string(sc, len, str, 0);
   strlength(x) = len;
   return (x);
 }
@@ -909,19 +953,15 @@ INTERFACE pointer mk_counted_string(scheme *sc, const char *str, int len) {
 static pointer mk_empty_string(scheme *sc, int len, char fill) {
   pointer x = get_cell(sc, sc->NIL, sc->NIL);
 
-  strvalue(x) = store_string(sc, len, 0, fill);
   typeflag(x) = (T_STRING | T_ATOM);
+  strvalue(x) = store_string(sc, len, 0, fill);
   strlength(x) = len;
   return (x);
 }
 
 INTERFACE static pointer mk_vector(scheme *sc, int len) {
-  pointer x = get_consecutive_cells(sc, len / 2 + len % 2 + 1);
-  typeflag(x) = (T_VECTOR | T_ATOM);
-  ivalue_unchecked(x) = len;
-  set_integer(x);
-  fill_vector(x, sc->NIL);
-  return x;
+  // Backported from TinySCHEME 1.40
+  return get_vector_object(sc,len,sc->NIL);
 }
 
 INTERFACE static void fill_vector(pointer vec, pointer obj) {
@@ -1188,6 +1228,10 @@ static void gc(scheme *sc, pointer a, pointer b) {
   mark(sc->outport);
   mark(sc->loadport);
 
+  // Backported from TinySCHEME 1.40
+  /* Mark recent objects the interpreter doesn't know about yet. */
+  mark(car(sc->sink));
+
   /* mark variables a, b */
   mark(a);
   mark(b);
@@ -1208,6 +1252,8 @@ static void gc(scheme *sc, pointer a, pointer b) {
         clrmark(p);
       } else if (is_blob(p) || is_string(p)) {
         // Do nothing, for now
+        // Note: Investigate whether this modification can be removed.
+        // This was likely only necessary because of gc bug fixed in 1.40. 
       } else {
         /* reclaim cell */
         if (typeflag(p) != 0) {
@@ -2371,6 +2417,9 @@ static pointer opexe_0(scheme *sc, enum scheme_opcodes op) {
     if (is_proc(sc->code)) {
       s_goto(sc, procnum(sc->code)); /* PROCEDURE */
     } else if (is_foreign(sc->code)) {
+      // Backported from TinySCHEME 1.40
+      /* Keep nested calls from GC'ing the arglist */
+      push_recent_alloc(sc,sc->args,sc->NIL);
       x = sc->code->_object._ff(sc, sc->args);
       s_return(sc, x);
     } else if (is_closure(sc->code) || is_macro(sc->code) ||
@@ -3994,9 +4043,6 @@ static const char *procname(pointer x) {
 
 /* kernel of this interpreter */
 static void Eval_Cycle(scheme *sc, enum scheme_opcodes op) {
-  int count = 0;
-  int old_op;
-
   sc->op = op;
   for (;;) {
     op_code_info *pcd = dispatch_table + sc->op;
@@ -4061,7 +4107,7 @@ static void Eval_Cycle(scheme *sc, enum scheme_opcodes op) {
         pcd = dispatch_table + sc->op;
       }
     }
-    old_op = sc->op;
+    ok_to_freely_gc(sc);
     if (pcd->func(sc, (enum scheme_opcodes)sc->op) == sc->NIL) {
       return;
     }
@@ -4069,7 +4115,6 @@ static void Eval_Cycle(scheme *sc, enum scheme_opcodes op) {
       fprintf(stderr, "No memory!\n");
       return;
     }
-    count++;
   }
 }
 
@@ -4268,6 +4313,12 @@ int scheme_init_custom_alloc(scheme *sc, func_alloc malloc, func_dealloc free) {
   /* init F */
   typeflag(sc->F) = (T_ATOM | MARK);
   car(sc->F) = cdr(sc->F) = sc->F;
+
+  // Backported from TinySCHEME 1.40
+  /* init sink */
+  typeflag(sc->sink) = (T_PAIR | MARK);
+  car(sc->sink) = sc->NIL;
+
   sc->oblist = oblist_initial_value(sc);
   /* init global_env */
   new_frame_in_env(sc, sc->NIL);
