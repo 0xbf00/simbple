@@ -89,6 +89,7 @@ static pointer sbpl_create_rule(scheme *sc, pointer args) {
   for (size_t i = 1; i < nargs; ++i) {
     pointer next_arg = scheme_arguments.next(sc, &args);
 
+    assert(next_arg != sc->NIL);
     // macOS Catalina uses the 'no-op symbol to neuter operations that
     // are still part of some sandbox profiles but that have no effect
     // anymore. We can simply discard / ignore these rules.
