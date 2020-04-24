@@ -177,8 +177,9 @@
        (set! allow orig-allow))))
 
 
-;; Introduced in 10.15 Catalina
-(if (string>=? *platform-version* "10.15")
+;; Introduced in 10.15 Catalina.
+;; Probably backported to 10.14 in one of the point updates
+(if (string>=? *platform-version* "10.14")
   ;;;
   ;;; Return filter matching all of the ancestor directories of the given path(s).
   ;;;
