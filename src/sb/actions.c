@@ -89,6 +89,7 @@ static pointer sbpl_create_rule(scheme *sc, pointer args) {
   for (size_t i = 1; i < nargs; ++i) {
     pointer next_arg = scheme_arguments.next(sc, &args);
 
+    assert(next_arg != sc->NIL);
     assert(is_blob(next_arg));
 
     blob_info_t bi = blob_info(next_arg);
