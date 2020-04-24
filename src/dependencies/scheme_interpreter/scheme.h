@@ -8,6 +8,10 @@
 extern "C" {
 #endif
 
+#ifndef SBPL_DEBUG
+#define SBPL_DEBUG 0
+#endif
+
 /*
  * Default values for #define'd symbols
  */
