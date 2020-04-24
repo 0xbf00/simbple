@@ -1472,11 +1472,15 @@ INTERFACE void putstr(scheme *sc, const char *s) {
   if (pt->kind & port_file) {
     fputs(s, pt->rep.stdio.file);
   } else {
+#if SBPL_DEBUG
+    fprintf(stderr, "%s", s);
+#else
     for (; *s; s++) {
       if (pt->rep.string.curr != pt->rep.string.past_the_end) {
         *pt->rep.string.curr++ = *s;
       }
     }
+#endif
   }
 }
 
@@ -1486,9 +1490,13 @@ static void putchars(scheme *sc, const char *s, int len) {
     fwrite(s, 1, len, pt->rep.stdio.file);
   } else {
     for (; len; len--) {
+#if SBPL_DEBUG
+      fprintf(stderr, "%c", *s++);
+#else
       if (pt->rep.string.curr != pt->rep.string.past_the_end) {
         *pt->rep.string.curr++ = *s++;
       }
+#endif
     }
   }
 }
@@ -1498,9 +1506,13 @@ INTERFACE void putcharacter(scheme *sc, int c) {
   if (pt->kind & port_file) {
     fputc(c, pt->rep.stdio.file);
   } else {
+#if SBPL_DEBUG
+    fprintf(stderr, "%c", c);
+#else
     if (pt->rep.string.curr != pt->rep.string.past_the_end) {
       *pt->rep.string.curr++ = c;
     }
+#endif
   }
 }
 
