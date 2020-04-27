@@ -75,6 +75,8 @@ static int parse_opt(int key, char *arg, struct argp_state *state) {
       argp_failure(state, 1, 0, "Incorrect platform specified.");
     if (state->arg_num > 1)
       argp_failure(state, 1, 0, "At most one container metadata file allowed.");
+    if (!args->scheme_output && args->should_verify)
+      argp_failure(state, 1, 0, "Only Scheme output can be verified.");
   }
   }
 
