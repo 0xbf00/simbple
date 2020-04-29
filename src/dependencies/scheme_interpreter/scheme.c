@@ -28,6 +28,7 @@
 #include <ctype.h>
 #include <float.h>
 #include <limits.h>
+#include <stdbool.h>
 
 #if USE_STRCASECMP
 #include <strings.h>
@@ -53,6 +54,7 @@
 #define TOK_SHARP 10
 #define TOK_SHARP_CONST 11
 #define TOK_VEC 12
+#define TOK_SHARP_CONST_RAW_STR 13
 
 #define BACKQUOTE '`'
 
@@ -336,6 +338,7 @@ static int basic_inchar(port *pt);
 static int inchar(scheme *sc);
 static void backchar(scheme *sc, int c);
 static char *readstr_upto(scheme *sc, char *delim);
+static char *readrawstr(scheme *sc);
 static pointer readstrexp(scheme *sc);
 static INLINE void skipspace(scheme *sc);
 static int token(scheme *sc);
@@ -1141,6 +1144,19 @@ static pointer mk_sharp_const(scheme *sc, char *name) {
       return sc->NIL;
     }
     return mk_character(sc, c);
+  } else if (*name == '\"') { /* #" (raw string) */
+    // find last "
+    const char *end = strrchr(name, '\"');
+    if (!end) {
+      return sc->NIL;
+    }
+
+    const size_t str_len = end - (name + 1) + 1;
+    pointer res = mk_empty_string(sc, str_len, ' ');
+    memcpy(strvalue(res), &name[1], str_len - 1);
+    strvalue(res)[str_len - 1] = '\0';
+
+    return res;
   } else
     return (sc->NIL);
 }
@@ -1531,6 +1547,36 @@ static char *readstr_upto(scheme *sc, char *delim) {
   return sc->strbuff;
 }
 
+/* read raw string expression #"xxx...xxx"
+   Note: this function is does not have to parse the initial '#' sign. */
+static char *readrawstr(scheme *sc) {
+  char *p = sc->strbuff;
+  int c;
+
+  int remaining = 2;
+
+  while (remaining > 0) {
+    c = inchar(sc);
+    if (c == EOF || p - sc->strbuff > sizeof(sc->strbuff) - 1) {
+      return sc->F;
+    }
+
+    *p++ = c;
+
+    if (c == '"') {
+      remaining--;
+    }
+  }
+
+  if (p - sc->strbuff > sizeof(sc->strbuff) - 1) {
+    return sc->F;
+  }
+
+  *p = '\0';
+  return sc->strbuff;
+
+}
+
 /* read string expression "xxx...xxx" */
 static pointer readstrexp(scheme *sc) {
   char *p = sc->strbuff;
@@ -1715,6 +1761,8 @@ static int token(scheme *sc) {
       backchar(sc, c);
       if (is_one_of(" tfodxb\\", c)) {
         return TOK_SHARP_CONST;
+      } else if (c == '"') {
+        return TOK_SHARP_CONST_RAW_STR;
       } else {
         return (TOK_SHARP);
       }
@@ -3781,6 +3829,13 @@ static pointer opexe_5(scheme *sc, enum scheme_opcodes op) {
       } else {
         s_return(sc, x);
       }
+    case TOK_SHARP_CONST_RAW_STR:
+      if ((x = mk_sharp_const(sc, readrawstr(sc))) == sc->NIL) {
+        Error_0(sc, "undefined sharp expression");
+      } else {
+        s_return(sc, x);
+      }
+
     default:
       Error_0(sc, "syntax error: illegal token");
     }

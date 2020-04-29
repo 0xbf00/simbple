@@ -96,15 +96,6 @@ const char *sb_evaluate(const char *profile, const char *container_metadata,
   scheme_support.register_object(sc, "*platform-version*",
     mk_string(sc, version_prefix_for_platform(platform)));
 
-  /*
-   * macOS Catalina sometimes encodes regex strings as #"regex". These values,
-   * which the scheme interpreter internally cannot handle, are not processed
-   * in any special way by the sandbox internals.
-   * To handle these values, we simply read an s-token when we encounter one
-   * of these unhandled values.
-   */
-  scheme_support.load_string(sc, "(define *sharp-hook* read)");
-
   scheme_support.load_string(sc, apple_init_scm);
 
   // Register error handler
