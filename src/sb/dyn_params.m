@@ -116,7 +116,15 @@ NSDictionary *extract_params(const char *filename)
 {
     NSDictionary *dict = load_plist(filename);
 
-    return dict[@"SandboxProfileDataValidationInfo"][@"SandboxProfileDataValidationParametersKey"];
+    NSDictionary *validation_info = dict[@"SandboxProfileDataValidationInfo"];
+    // Key used in Container.plist files up to 10.15.3
+    NSDictionary *result = validation_info[@"SandboxProfileDataValidationParametersKey"];
+
+    if (!result) {
+        // Key used in Container.plist files starting in 10.15.4
+        result = validation_info[@"Parameters"];
+    }
+    return result;
 }
 
 void register_params(scheme *sc, const char *filename)
@@ -130,7 +138,16 @@ NSArray *extract_additional_sandbox_snippets(const char *filename)
 {
     NSDictionary *dict = load_plist(filename);
 
-    return dict[@"SandboxProfileDataValidationInfo"][@"SandboxProfileDataValidationSnippetDictionariesKey"];
+    NSDictionary *validation_info = dict[@"SandboxProfileDataValidationInfo"];
+    // works on <= 10.15.3
+    NSArray *result = validation_info[@"SandboxProfileDataValidationSnippetDictionariesKey"];
+
+    if (!result) {
+        // >= 10.15.4
+        result = validation_info[@"SystemProfiles"];
+    }
+
+    return result;
 }
 
 /**
@@ -163,12 +180,28 @@ NSDictionary *extract_entitlements(const char *filename)
         return nil;
 
     NSMutableDictionary *entitlements = [NSMutableDictionary dictionaryWithCapacity: 5];
-    [entitlements addEntriesFromDictionary: [validation_info objectForKey: @"SandboxProfileDataValidationEntitlementsKey"]];
+    if (validation_info[@"SandboxProfileDataValidationEntitlementsKey"]) {
+        [entitlements addEntriesFromDictionary: validation_info[@"SandboxProfileDataValidationEntitlementsKey"]];
+    } else {
+        [entitlements addEntriesFromDictionary: validation_info[@"Entitlements"]];
+    }
 
     NSArray *redirectable_paths = validation_info[@"SandboxProfileDataValidationRedirectablePathsKey"];
-    NSArray *redirected_paths = validation_info[@"SandboxProfileDataValidationRedirectedPathsKey"];
+    if (!redirectable_paths) {
+        redirectable_paths = validation_info[@"RedirectablePaths"];
+    }
     [entitlements setObject: redirectable_paths forKey: @"com.apple.private.app-sandbox.redirectable-paths"];
+
+    NSArray *redirected_paths = validation_info[@"SandboxProfileDataValidationRedirectedPathsKey"];
+    if (!redirected_paths) {
+        redirected_paths = validation_info[@"RedirectedPaths"];
+    }
     [entitlements setObject: redirected_paths forKey: @"com.apple.private.app-sandbox.redirected-paths"];
+
+    NSArray *system_images = validation_info[@"SystemImages"];
+    if (system_images) {
+        [entitlements setObject: system_images forKey: @"com.apple.private.app-sandbox.system-frameworks"];
+    }
 
     return [NSDictionary dictionaryWithDictionary: entitlements];
 }
